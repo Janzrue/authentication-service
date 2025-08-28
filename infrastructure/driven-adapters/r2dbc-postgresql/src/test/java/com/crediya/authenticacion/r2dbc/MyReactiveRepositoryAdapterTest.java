@@ -30,10 +30,10 @@ class MyReactiveRepositoryAdapterTest {
 //    @Test
 //    void mustFindValueById() {
 //
-//        when(repository.findById("1")).thenReturn(Mono.just("test"));
+//        when(repository.findRoleById("1")).thenReturn(Mono.just("test"));
 //        when(mapper.map("test", Object.class)).thenReturn("test");
 //
-//        Mono<Object> result = repositoryAdapter.findById("1");
+//        Mono<Object> result = repositoryAdapter.findRoleById("1");
 //
 //        StepVerifier.create(result)
 //                .expectNextMatches(value -> value.equals("test"))
