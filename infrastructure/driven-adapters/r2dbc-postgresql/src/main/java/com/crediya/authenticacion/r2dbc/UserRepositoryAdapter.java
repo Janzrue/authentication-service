@@ -5,9 +5,13 @@ import com.crediya.authenticacion.model.user.gateways.UserRepository;
 import com.crediya.authenticacion.r2dbc.entity.UserEntity;
 import com.crediya.authenticacion.r2dbc.helper.ReactiveAdapterOperations;
 import com.crediya.authenticacion.r2dbc.mapper.UserR2dbcMapper;
+import com.crediya.authenticacion.usecase.exceptions.NotFoundException;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.reactive.TransactionalOperator;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+
+import java.math.BigDecimal;
 
 
 @Repository
@@ -15,18 +19,27 @@ public class UserRepositoryAdapter
         extends ReactiveAdapterOperations<User, UserEntity, Long, UserReactiveRepository>
         implements UserRepository {
 
+    private final UserReactiveRepository userReactiveRepository;
     private final UserR2dbcMapper userMapper;
+    private final TransactionalOperator transactionalOperator;
 
-    public UserRepositoryAdapter(UserReactiveRepository repository, UserR2dbcMapper userMapper) {
+
+    public UserRepositoryAdapter(UserReactiveRepository repository, UserR2dbcMapper userMapper, TransactionalOperator transactionalOperator) {
         super(repository, null, userMapper::toModel);
+        this.userReactiveRepository = repository;
         this.userMapper = userMapper;
+        this.transactionalOperator = transactionalOperator;
     }
 
     @Override
     public Mono<User> saveUser(User user) {
-        UserEntity entity = userMapper.toEntity(user);
-        return super.repository.save(entity)
-                .map(userMapper::toModel);
+        return Mono.defer(() -> {
+            // Convierte el modelo de dominio a entidad persistente
+            UserEntity entity = userMapper.toEntity(user);
+            // Guarda la entidad y la convierte nuevamente a modelo
+            return userReactiveRepository.save(entity)
+                    .map(userMapper::toModel);
+        }).as(transactionalOperator::transactional); // Aplica transacción reactiva
     }
 
     @Override
@@ -37,22 +50,45 @@ public class UserRepositoryAdapter
 
     @Override
     public Mono<User> findUserById(Long id) {
-        return super.repository.findById(id)
-                .map(userMapper::toModel);
+        return userReactiveRepository.findById(id)
+                .map(userMapper::toModel)
+                .switchIfEmpty(Mono.error(new NotFoundException("User not found with id: " + id)));
     }
 
     @Override
     public Mono<User> editUser(User user) {
-        return super.repository.findById(user.getIdNumber())
+        return userReactiveRepository.findById(user.getIdNumber())
+                .switchIfEmpty(Mono.error(new NotFoundException("User not found with id:")))
                 .flatMap(existing -> {
+                    // Convierte el modelo actualizado a entidad
                     UserEntity updated = userMapper.toEntity(user);
-                    return super.repository.save(updated);
+                    // Mantiene el ID original de la base
+                    updated.setIdUser(existing.getIdUser());
+                    // Guarda cambios y devuelve el modelo
+                    return userReactiveRepository.save(updated)
+                            .map(userMapper::toModel);
                 })
-                .map(userMapper::toModel);
+                .as(transactionalOperator::transactional);
     }
 
     @Override
     public Mono<Void> deleteUser(Long id) {
-        return super.repository.deleteById(id);
+        return userReactiveRepository.deleteById(id)
+                .as(transactionalOperator::transactional);
+    }
+
+    @Override
+    public Mono<Boolean> existsByEmail(String email) {
+        return userReactiveRepository.existsByEmail(email);
+    }
+
+    @Override
+    public Mono<Boolean> existsByIdentificationNumber(String identificationNumber) {
+        return userReactiveRepository.existsByIdentificationNumber(identificationNumber);
+    }
+
+    @Override
+    public Mono<Boolean> existsRoleById(Long idRole) {
+        return userReactiveRepository.existsRoleById(idRole);
     }
 }

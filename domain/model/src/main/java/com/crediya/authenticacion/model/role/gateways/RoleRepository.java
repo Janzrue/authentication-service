@@ -7,4 +7,6 @@ public interface RoleRepository {
 
     Mono<Role> findRoleById(Long id);
     Mono<Role> saveRole(Role role);
+    Mono<Role> updateRole(Role role);
+    Mono<Void> deleteRole(Long id);
 }

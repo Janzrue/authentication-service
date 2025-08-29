@@ -17,4 +17,12 @@ public class RoleUseCase {
     public Mono<Role> saveRole(Role role){
         return roleRepository.saveRole(role);
     }
+
+    public Mono<Role> updateRole(Role role){
+        return roleRepository.updateRole(role);
+    }
+
+    public Mono<Void> deleteRole(Long id){
+        return roleRepository.deleteRole(id);
+    }
 }

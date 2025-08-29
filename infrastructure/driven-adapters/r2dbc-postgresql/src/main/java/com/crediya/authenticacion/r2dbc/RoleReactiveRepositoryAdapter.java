@@ -35,4 +35,20 @@ public class RoleReactiveRepositoryAdapter
                 .map(roleMapper::toModel);
     }
 
+    @Override
+    public Mono<Role> updateRole(Role role) {
+        return roleReactiveRepository.findById(role.getUniqueId())
+                .flatMap(existing -> {
+                    RoleEntity entity = roleMapper.toEntity(role);
+                    entity.setIdRole(existing.getIdRole()); // conservar ID real
+                    return roleReactiveRepository.save(entity);
+                })
+                .map(roleMapper::toModel);
+    }
+
+    @Override
+    public Mono<Void> deleteRole(Long id) {
+        return roleReactiveRepository.deleteById(id.intValue());
+    }
+
 }

@@ -41,8 +41,8 @@ public class SaveUserDTO {
         @NotBlank(message = "identification number is mandatory.")
         String identificationNumber;
 
-        @NotNull(message = "idRole is mandatory.")
-        @Min(value = 1, message = "idRole must be greater than 0.")
+        @NotNull(message = "roleId is mandatory.")
+        @Min(value = 1, message = "roleId must be greater than 0.")
         private Integer roleId;
 
 }
