@@ -10,11 +10,11 @@ import java.math.BigDecimal;
 @Mapper(componentModel = "spring", implementationName = "UserR2dbcMapperImpl")
 public interface UserR2dbcMapper {
 
-    @Mapping(target = "idNumber", source = "idUser")
+    @Mapping(target = "id", source = "id")
     @Mapping(target = "idRole", source = "roleId")
     User toModel(UserEntity entity);
 
-    @Mapping(target = "idUser", source = "idNumber")
+    @Mapping(target = "id", source = "id")
     @Mapping(target = "roleId", source = "idRole")
     UserEntity toEntity(User user);
 

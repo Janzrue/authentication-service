@@ -37,10 +37,10 @@ public class RoleReactiveRepositoryAdapter
 
     @Override
     public Mono<Role> updateRole(Role role) {
-        return roleReactiveRepository.findById(role.getUniqueId())
+        return roleReactiveRepository.findById(role.getId().intValue())
                 .flatMap(existing -> {
                     RoleEntity entity = roleMapper.toEntity(role);
-                    entity.setIdRole(existing.getIdRole()); // conservar ID real
+                    entity.setId(existing.getId()); // conservar ID real
                     return roleReactiveRepository.save(entity);
                 })
                 .map(roleMapper::toModel);

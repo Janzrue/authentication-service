@@ -8,10 +8,10 @@ import org.mapstruct.Mapping;
 @Mapper(componentModel = "spring", implementationName = "RoleMapperImpl")
 public interface RoleMapper {
 
-    @Mapping(target = "idRole", source = "uniqueId")
+    @Mapping(target = "id", source = "id")
     RoleEntity toEntity(Role role);
 
-    @Mapping(target = "uniqueId", source = "idRole")
+    @Mapping(target = "id", source = "id")
     Role toModel(RoleEntity roleEntity);
 
     default Long map(Integer value) {

@@ -15,7 +15,7 @@ import reactor.test.StepVerifier;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class RoleReactiveRepositoryAdapterTest {
+class       RoleReactiveRepositoryAdapterTest {
 
     @Mock
     private RoleReactiveRepository repository; // Mock del repositorio reactivo

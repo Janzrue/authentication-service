@@ -11,11 +11,9 @@ import org.springframework.transaction.reactive.TransactionalOperator;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import java.math.BigDecimal;
-
 
 @Repository
-public class UserRepositoryAdapter
+public class UserReactiveRepositoryAdapter
         extends ReactiveAdapterOperations<User, UserEntity, Long, UserReactiveRepository>
         implements UserRepository {
 
@@ -24,7 +22,7 @@ public class UserRepositoryAdapter
     private final TransactionalOperator transactionalOperator;
 
 
-    public UserRepositoryAdapter(UserReactiveRepository repository, UserR2dbcMapper userMapper, TransactionalOperator transactionalOperator) {
+    public UserReactiveRepositoryAdapter(UserReactiveRepository repository, UserR2dbcMapper userMapper, TransactionalOperator transactionalOperator) {
         super(repository, null, userMapper::toModel);
         this.userReactiveRepository = repository;
         this.userMapper = userMapper;
@@ -57,13 +55,13 @@ public class UserRepositoryAdapter
 
     @Override
     public Mono<User> editUser(User user) {
-        return userReactiveRepository.findById(user.getIdNumber())
+        return userReactiveRepository.findById(user.getId())
                 .switchIfEmpty(Mono.error(new NotFoundException("User not found with id:")))
                 .flatMap(existing -> {
                     // Convierte el modelo actualizado a entidad
                     UserEntity updated = userMapper.toEntity(user);
                     // Mantiene el ID original de la base
-                    updated.setIdUser(existing.getIdUser());
+                    updated.setId(existing.getId());
                     // Guarda cambios y devuelve el modelo
                     return userReactiveRepository.save(updated)
                             .map(userMapper::toModel);

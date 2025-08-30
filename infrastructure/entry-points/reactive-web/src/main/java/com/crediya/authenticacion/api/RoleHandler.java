@@ -31,16 +31,16 @@ public class RoleHandler {
     public Mono<ServerResponse> listenSaveRole(ServerRequest request) {
         return request.bodyToMono(RoleDTO.class)
                 .map(dto -> {
-                    log.info("Request to save role: {}", dto.getName());
+                    log.info("Request to create role: {}", dto.getName());
                     var violations = validator.validate(dto);
                     if (!violations.isEmpty()) {
-                        List<String> errs = violations.stream()
+                        String errs = violations.stream()
                                 .map(ConstraintViolation::getMessage)
-                                .collect(Collectors.toList());
-                        throw new ValidationException(errs);
+                                .collect(Collectors.joining(", "));
+                        throw new ValidationException(errs); // usamos  ValidationException
                     }
                     return Role.builder()
-                            .uniqueId(dto.getUniqueId())
+//                            .id(dto.getUniqueId())
                             .name(dto.getName())
                             .description(dto.getDescription())
                             .build();
@@ -58,12 +58,51 @@ public class RoleHandler {
     }
 
     public Mono<ServerResponse> listenFindRoleById(ServerRequest request) {
-        Long id = Long.valueOf(request.pathVariable("id"));
+        Long id = Long.valueOf(request.pathVariable("uniqueId"));
         log.info("Checking role with ID: {}", id);
         return roleUseCase.findRoleById(id)
                 .flatMap(role -> ServerResponse.ok()
                         .contentType(MediaType.APPLICATION_JSON)
                         .bodyValue(role))
                 .switchIfEmpty(ServerResponse.notFound().build());
+    }
+
+    public Mono<ServerResponse> listenUpdateRole(ServerRequest request) {
+        return request.bodyToMono(RoleDTO.class)
+                .map(this::validateDto)
+                .flatMap(roleUseCase::updateRole)
+                .flatMap(updatedRole -> ServerResponse.ok()
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .bodyValue(updatedRole))
+                .onErrorResume(this::handleError);
+    }
+
+    public Mono<ServerResponse> listenDeleteRole(ServerRequest request) {
+        Long id = Long.valueOf(request.pathVariable("uniqueId"));
+        return roleUseCase.deleteRole(id)
+                .then(ServerResponse.noContent().build())
+                .onErrorResume(this::handleError);
+    }
+
+    private Role validateDto(RoleDTO dto) {
+        var violations = validator.validate(dto);
+        if (!violations.isEmpty()) {
+            String errs = violations.stream()
+                    .map(ConstraintViolation::getMessage)
+                    .collect(Collectors.joining(", "));
+            throw new ValidationException(errs);
+        }
+        return Role.builder()
+                .id(dto.getId())
+                .name(dto.getName())
+                .description(dto.getDescription())
+                .build();
+    }
+
+    private Mono<ServerResponse> handleError(Throwable e) {
+        log.error("Error: {}", e.getMessage());
+        return ServerResponse.badRequest()
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue("{\"error\":\"" + e.getMessage() + "\"}");
     }
 }

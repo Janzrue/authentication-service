@@ -1,5 +1,3 @@
-apply plugin: 'info.solidsoft.pitest.aggregator'
-
 allprojects {
     repositories {
         mavenCentral()
@@ -12,7 +10,6 @@ subprojects {
     apply plugin: 'java'
     apply plugin: 'jacoco'
     apply plugin: 'io.spring.dependency-management'
-    apply plugin: 'info.solidsoft.pitest'
 
     compileJava.dependsOn validateStructure
 
@@ -20,8 +17,6 @@ subprojects {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
-
-    //build.dependsOn 'pitest'
 
     test {
         useJUnitPlatform()
@@ -53,26 +48,8 @@ subprojects {
 
     test.finalizedBy(project.tasks.jacocoTestReport)
 
-    pitest {
-        targetClasses = ['com.crediya.authenticacion.*']
-        excludedClasses = []
-        excludedTestClasses = []
-        pitestVersion = '1.20.1'
-        verbose = false
-        outputFormats = ['XML', 'HTML']
-        threads = 8
-        exportLineCoverage = true
-        useClasspathFile = true
-        timestampedReports = false
-        //mutators = ['STRONGER', 'DEFAULTS']
-        fileExtensionsToFilter.addAll('xml', 'orbit')
-        junit5PluginVersion = '1.2.2'
-        failWhenNoMutations = false
-        jvmArgs = ["-XX:+AllowRedefinitionToAddDeleteMethods"]
-    }
-
     jacocoTestReport {
-        dependsOn test, 'pitest'
+        dependsOn test
         reports {
             xml.setRequired true
             xml.setOutputLocation layout.buildDirectory.file("reports/jacoco.xml")
@@ -89,7 +66,7 @@ jacoco {
 }
 
 tasks.register('jacocoMergedReport', JacocoReport) {
-    dependsOn = [test, subprojects.jacocoTestReport, pitestReportAggregate]
+    dependsOn = [test, subprojects.jacocoTestReport]
     additionalSourceDirs.setFrom files(subprojects.sourceSets.main.allSource.srcDirs)
     sourceDirectories.setFrom files(subprojects.sourceSets.main.allSource.srcDirs)
     classDirectories.setFrom files(subprojects.sourceSets.main.output)
@@ -105,26 +82,6 @@ tasks.withType(JavaCompile).configureEach {
     options.compilerArgs = [
             '-Amapstruct.suppressGeneratorTimestamp=true'
     ]
-}
-
-pitestReportAggregate {
-    doLast {
-        def reportDir = layout.buildDirectory.dir("reports/pitest").get().asFile
-        def consolidatedReport = new File(reportDir, 'mutations.xml')
-        consolidatedReport.withWriter { writer ->
-            writer.write("<mutations>\n")
-            subprojects.each { subproject ->
-                def xmlReport = subproject.layout.buildDirectory.file("reports/pitest/mutations.xml").get().asFile
-                if (xmlReport.exists()) {
-                    def xmlContent = xmlReport.text
-                    xmlContent = xmlContent.replaceAll("<\\?xml[^>]*>", "")
-                    xmlContent = xmlContent.replaceAll("</?mutations( partial=\"true\")?>", "")
-                    writer.write(xmlContent.trim() + "\n")
-                }
-            }
-            writer.write("</mutations>")
-        }
-    }
 }
 
 tasks.named('wrapper') {

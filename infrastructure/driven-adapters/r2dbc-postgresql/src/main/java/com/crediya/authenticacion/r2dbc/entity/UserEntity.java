@@ -22,8 +22,7 @@ import java.time.LocalDate;
 public class UserEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long idUser;
+    private Long id;
     private String name;
     @Column(name = "last_name")
     private String lastName;

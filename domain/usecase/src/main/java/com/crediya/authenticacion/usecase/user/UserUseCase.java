@@ -44,8 +44,8 @@ public class UserUseCase {
     }
 
     public Mono<User> editUser(User user) {
-        return userRepository.findUserById(user.getIdNumber())
-                .switchIfEmpty(Mono.error(new NotFoundException("User not found with id: " + user.getIdNumber())))
+        return userRepository.findUserById(user.getId())
+                .switchIfEmpty(Mono.error(new NotFoundException("User not found with id: " + user.getId())))
                 .flatMap(existing -> {
                     validateUser(user); // valida datos antes de actualizar
                     return userRepository.editUser(user);
