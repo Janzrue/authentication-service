@@ -43,4 +43,6 @@ public interface UserRepository {
      * @return Mono<Boolean> true si el rol existe.
      */
     Mono<Boolean> existsRoleById(Long idRole);
+
+    Mono<User> findByEmail(String email);
 }

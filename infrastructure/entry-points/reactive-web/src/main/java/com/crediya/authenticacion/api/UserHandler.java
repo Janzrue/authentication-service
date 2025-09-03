@@ -2,6 +2,7 @@ package com.crediya.authenticacion.api;
 
 import com.crediya.authenticacion.api.dto.UserDTO;
 import com.crediya.authenticacion.api.mapper.UserApiMapper;
+import com.crediya.authenticacion.model.auth.gateways.PasswordEncoderPort;
 import com.crediya.authenticacion.usecase.exceptions.DuplicateException;
 import com.crediya.authenticacion.usecase.exceptions.NotFoundException;
 import com.crediya.authenticacion.usecase.exceptions.ValidationException;
@@ -28,6 +29,7 @@ public class UserHandler {
     private final UserUseCase userUseCase;
     private final UserApiMapper userApiMapper;
     private final Validator validator;
+    private final PasswordEncoderPort passwordEncoder;
 
     public Mono<ServerResponse> listenSaveUser(ServerRequest request) {
         return request.bodyToMono(UserDTO.class)
@@ -61,6 +63,12 @@ public class UserHandler {
                                 return Mono.just(dto);
                             });
                 })
+                .flatMap(dto -> passwordEncoder.encode(dto.getPassword())
+                        .map(hash -> {
+                            dto.setPassword(hash); // reemplaza por hash
+                            return dto;
+                        })
+                )
                 .map(userApiMapper::toDomain)
                 .flatMap(userUseCase::saveUser)
                 .flatMap(savedUser -> ServerResponse.ok()

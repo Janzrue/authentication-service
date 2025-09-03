@@ -7,6 +7,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -55,5 +56,9 @@ public class UserDTO {
         @Min(value = 1, message = "roleId must be greater than 0.")
         @Schema(description = "Role ID assigned to the user", example = "1")
         private Long roleId;
+
+        @NotBlank(message = "password is mandatory")
+        @Size(min = 8, max = 100, message = "password between 6 y 100 characters long")
+        private String password;
 
 }

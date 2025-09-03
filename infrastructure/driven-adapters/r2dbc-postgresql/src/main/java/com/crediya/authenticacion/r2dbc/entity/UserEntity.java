@@ -33,6 +33,7 @@ public class UserEntity {
     @Column( name = "birth_date")
     private LocalDate birthDate;
     private String address;
+    private String password;
     private String phone;
     private String email;
     @Column(name = "base_salary")

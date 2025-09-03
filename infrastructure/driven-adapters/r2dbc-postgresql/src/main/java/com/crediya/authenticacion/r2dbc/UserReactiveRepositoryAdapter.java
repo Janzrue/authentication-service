@@ -100,4 +100,10 @@ public class UserReactiveRepositoryAdapter
     public Mono<Boolean> existsRoleById(Long idRole) {
         return userReactiveRepository.existsRoleById(idRole);
     }
+
+    @Override
+    public Mono<User> findByEmail(String email) {
+        return userReactiveRepository.findByEmail(email)
+                .map(userMapper::toModel);
+    }
 }

@@ -34,4 +34,6 @@ public class User {
 
     /** Rol asociado al usuario (FK a Role). */
     private BigDecimal idRole;
+
+    private String password; // hashed
 }
