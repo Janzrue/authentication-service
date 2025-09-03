@@ -13,6 +13,14 @@ import java.time.LocalDate;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder(toBuilder = true)
+
+/**
+ * Entidad de dominio que representa a un Usuario del sistema.
+ *
+ * - Contiene los atributos principales de un usuario.
+ * - Hace parte del dominio limpio (sin dependencias de infraestructura).
+ */
+
 public class User {
     private Long id;
     private String name;
@@ -23,5 +31,7 @@ public class User {
     private String email;
     private Integer baseSalary;
     private String identificationNumber;
+
+    /** Rol asociado al usuario (FK a Role). */
     private BigDecimal idRole;
 }

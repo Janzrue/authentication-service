@@ -12,14 +12,24 @@ import reactor.core.publisher.Mono;
 
 import java.math.BigDecimal;
 
+/**
+ * Caso de uso para Usuarios.
+ * - Contiene la lógica de negocio de CRUD.
+ * - Aplica validaciones.
+ * - Usa programación reactiva con Mono y Flux.
+ */
+
 @RequiredArgsConstructor
 public class UserUseCase {
 
+    // Inyección del repositorio de usuarios.
     private final UserRepository userRepository;
 
+    // Crear un nuevo usuario con validaciones.
     public Mono<User> saveUser(User user) {
         validateUser(user);
 
+        // Verificar si ya existe el email o documento.
         return Mono.zip(
                 userRepository.existsByEmail(user.getEmail()),
                 userRepository.existsByIdentificationNumber(user.getIdentificationNumber())
@@ -30,14 +40,17 @@ public class UserUseCase {
             if (emailExists) return Mono.error(new DuplicateException("The email is already registered."));
             if (docExists) return Mono.error(new DuplicateException("The document has already been registered."));
 
+            // Si todo está bien, guardar el usuario.
             return userRepository.saveUser(user);
         });
     }
+
 
     public Flux<User> findAllUsers() {
         return userRepository.findAllUsers();
     }
 
+    // Buscar usuario por ID, si no encuentra nada lanza NotFoundException
     public Mono<User> findUserByIdNumber(Long idNumber) {
         return userRepository.findUserById(idNumber)
                 .switchIfEmpty(Mono.error(new NotFoundException("User not found with id: " + idNumber)));
@@ -47,7 +60,7 @@ public class UserUseCase {
         return userRepository.findUserById(user.getId())
                 .switchIfEmpty(Mono.error(new NotFoundException("User not found with id: " + user.getId())))
                 .flatMap(existing -> {
-                    validateUser(user); // valida datos antes de actualizar
+                    validateUser(user); // Validar datos del usuario antes de editar
                     return userRepository.editUser(user);
                 });
     }
@@ -59,14 +72,17 @@ public class UserUseCase {
     }
 
 
+    // Validar si ya existe un usuario con el email o documento indicado.
     public Mono<Boolean> existsByEmail(String email) {
         return userRepository.existsByEmail(email);
     }
 
+    // Validar si ya existe un usuario con el documento de identidad indicado.
     public Mono<Boolean> existsByIdentificationNumber(String IdentificationNumber) {
         return userRepository.existsByIdentificationNumber(IdentificationNumber);
     }
 
+    // Verificar si existe un rol asociado al usuario mediante su id.
     private void validateUser(User user) {
         if (isNullOrEmpty(user.getName())) throw new ValidationException("The name cannot be empty.");
         if (isNullOrEmpty(user.getLastName())) throw new ValidationException("The last name cannot be empty.");
@@ -79,7 +95,8 @@ public class UserUseCase {
 
     private void validateEmail(String email) {
         if (isNullOrEmpty(email)) throw new ValidationException("Email is required.");
-        if (!email.matches("^[A-Za-z0-9+_.-]+@(.+)$")) throw new ValidationException("Invalid email format");
+        if (!email.matches("^[A-Za-z0-9+_.-]+@(.+)$"))
+            throw new ValidationException("Invalid email format");
     }
 
     private void validatebaseSalary(Integer baseSalary) {

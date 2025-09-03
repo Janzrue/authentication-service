@@ -1,5 +1,5 @@
 server:
-  port: 8080
+  port: 8081
 spring:
   application:
     name: "authenticacion-service"
@@ -22,11 +22,6 @@ management:
         enabled: true
 cors:
   allowed-origins: "http://localhost:4200,http://localhost:8080"
-
-routes:
-  paths:
-    users: "/api/v1/users"
-    usersById: "/api/v1/users/{id}"
 
 adapters:
   r2dbc:

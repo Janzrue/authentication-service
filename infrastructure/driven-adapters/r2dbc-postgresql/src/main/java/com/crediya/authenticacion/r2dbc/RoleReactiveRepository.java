@@ -9,6 +9,6 @@ import org.springframework.data.repository.reactive.ReactiveCrudRepository;
  * Extiende ReactiveCrudRepository para operaciones CRUD reactivas.
  */
 public interface RoleReactiveRepository extends
-        ReactiveCrudRepository <RoleEntity, Integer>,
-        ReactiveQueryByExampleExecutor <RoleEntity> {
+        ReactiveCrudRepository <RoleEntity, Long>, //CRUD base
+        ReactiveQueryByExampleExecutor <RoleEntity> { //Búsquedas dinámicas
 }

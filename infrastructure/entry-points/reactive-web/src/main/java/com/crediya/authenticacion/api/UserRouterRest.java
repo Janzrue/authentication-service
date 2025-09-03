@@ -22,16 +22,26 @@ import static org.springframework.web.reactive.function.server.RequestPredicates
 import static org.springframework.web.reactive.function.server.RequestPredicates.DELETE;
 import static org.springframework.web.reactive.function.server.RouterFunctions.route;
 
+/**
+ * Router funcional para exponer endpoints relacionados con USUARIOS.
+ * Usa programación funcional de Spring WebFlux.
+ */
 
 @Configuration
 @Tag(name = "Users API", description = "CRUD Operations for Users")
 public class UserRouterRest {
+
+    private static final String BASE_PATH = "/api/v1/users";
+    private static final String PATH_ID = "/{id}";
+    private static final String PATH_EXISTS_EMAIL = "/exists/email/{email}";
+    private static final String PATH_EXISTS_DOC = "/exists/idNumber/{idNumber}";
+
     @Bean
     @RouterOperations({
 
             // ================== GET ALL ==================
             @RouterOperation(
-                    path = "/api/v1/users",
+                    path = BASE_PATH,
                     produces = {MediaType.APPLICATION_JSON_VALUE},
                     method = RequestMethod.GET,
                     beanClass = UserHandler.class,
@@ -53,7 +63,7 @@ public class UserRouterRest {
 
             // ================== GET BY ID ==================
             @RouterOperation(
-                    path = "/api/v1/users/{id}",
+                    path = BASE_PATH + PATH_ID,
                     produces = {MediaType.APPLICATION_JSON_VALUE},
                     method = RequestMethod.GET,
                     beanClass = UserHandler.class,
@@ -76,7 +86,7 @@ public class UserRouterRest {
 
             // ================== POST (REGISTRAR) ==================
             @RouterOperation(
-                    path = "/api/v1/users",
+                    path = BASE_PATH,
                     produces = {MediaType.APPLICATION_JSON_VALUE},
                     method = RequestMethod.POST,
                     beanClass = UserHandler.class,
@@ -102,7 +112,7 @@ public class UserRouterRest {
 
             // ================== PUT (EDITAR) ==================
             @RouterOperation(
-                    path = "/api/v1/users",
+                    path = BASE_PATH,
                     produces = {MediaType.APPLICATION_JSON_VALUE},
                     method = RequestMethod.PUT,
                     beanClass = UserHandler.class,
@@ -110,10 +120,6 @@ public class UserRouterRest {
                     operation = @Operation(
                             operationId = "listenEditUser",
                             summary = "Modify an existing user",
-                            requestBody = @RequestBody(
-                                    required = true,
-                                    content = @Content(schema = @Schema(implementation = UserDTO.class))
-                            ),
                             responses = {
                                     @ApiResponse(
                                             responseCode = "200",
@@ -129,7 +135,7 @@ public class UserRouterRest {
 
             // ================== DELETE ==================
             @RouterOperation(
-                    path = "/api/v1/users/{id}",
+                    path = BASE_PATH,
                     produces = {MediaType.APPLICATION_JSON_VALUE},
                     method = RequestMethod.DELETE,
                     beanClass = UserHandler.class,
@@ -145,12 +151,12 @@ public class UserRouterRest {
             )
     })
     public RouterFunction<ServerResponse> routerFunction(UserHandler handler) {
-        return route(POST("/api/v1/users"), handler::listenSaveUser)
-                .andRoute(GET("/api/v1/users"), handler::listenFindAllUsers)
-                .andRoute(GET("/api/v1/users/{id}"), handler::listenFindUserByIdNumber)
-                .andRoute(PUT("/api/v1/users"), handler::listenEditUser)
-                .andRoute(DELETE("/api/v1/users/{id}"), handler::listenDeleteUser)
-                .andRoute(GET("/api/v1/users/exists/email/{email}"), handler::existsByEmail)
-                .andRoute(GET("/api/v1/users/exists/idNumber/{idNumber}"), handler::existsByIdentificationNumber);
+        return route(POST(BASE_PATH), handler::listenSaveUser)
+                .andRoute(GET(BASE_PATH), handler::listenFindAllUsers)
+                .andRoute(GET(BASE_PATH + PATH_ID), handler::listenFindUserById)
+                .andRoute(PUT(BASE_PATH), handler::listenEditUser)
+                .andRoute(DELETE(BASE_PATH + PATH_ID), handler::listenDeleteUser)
+                .andRoute(GET(BASE_PATH + PATH_EXISTS_EMAIL), handler::existsByEmail)
+                .andRoute(GET(BASE_PATH + PATH_EXISTS_DOC), handler::existsByIdentificationNumber);
     }
 }

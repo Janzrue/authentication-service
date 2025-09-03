@@ -9,7 +9,6 @@ import java.math.BigDecimal;
 @Mapper(componentModel = "spring", imports = BigDecimal.class)
 public interface UserApiMapper {
 
-    @Mapping(target = "id", ignore = true) // Generado por la BD
     @Mapping(target = "identificationNumber", source = "identificationNumber")
     @Mapping(target = "birthDate", source = "birthDate")
     @Mapping(target = "email", source = "email")
@@ -21,6 +20,6 @@ public interface UserApiMapper {
     @Mapping(target = "birthDate", source = "birthDate")
     @Mapping(target = "email", source = "email")
     @Mapping(target = "baseSalary", source = "baseSalary")
-    @Mapping(target = "roleId", expression = "java(user.getIdRole() != null ? user.getIdRole().intValue() : null)")
+    @Mapping(target = "roleId", expression = "java(Long.valueOf(user.getIdRole() != null ? user.getIdRole().intValue() : null))")
     UserDTO toDTO(User user);
 }

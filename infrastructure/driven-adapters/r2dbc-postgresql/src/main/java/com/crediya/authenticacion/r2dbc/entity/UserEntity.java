@@ -1,8 +1,6 @@
 package com.crediya.authenticacion.r2dbc.entity;
 
 import jakarta.persistence.Column;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -19,6 +17,12 @@ import java.time.LocalDate;
 @Getter
 @Setter
 @Builder
+
+/**
+ * Entidad que representa la tabla "usuarios".
+ * Contiene toda la información básica del usuario.
+ */
+
 public class UserEntity {
 
     @Id

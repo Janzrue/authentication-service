@@ -5,7 +5,15 @@ import org.springframework.data.repository.query.ReactiveQueryByExampleExecutor;
 import org.springframework.data.repository.reactive.ReactiveCrudRepository;
 import reactor.core.publisher.Mono;
 
-// TODO: This file is just an example, you should delete or modify it
+/**
+ * Repositorio reactivo para la entidad UserEntity.
+ *
+ * Explicación:
+ * - Extiende ReactiveCrudRepository para operaciones CRUD básicas (findAll, findById, save, delete).
+ * - Extiende ReactiveQueryByExampleExecutor para búsquedas dinámicas usando Query by Example.
+ * - Define métodos específicos para verificar existencia de usuarios por correo, documento o rol.
+ */
+
 public interface UserReactiveRepository extends ReactiveCrudRepository<UserEntity, Long>, ReactiveQueryByExampleExecutor<UserEntity> {
 
     Mono<Boolean> existsByEmail(String email);

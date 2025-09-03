@@ -29,7 +29,7 @@ public class RoleHandlerTest {
 
     @Test
     void saveRole_success() {
-        Role role = Role.builder().uniqueId(1).name("ADMIN").description("Rol de prueba").build();
+        Role role = Role.builder().id(1L).name("ADMIN").description("Rol de prueba").build();
         when(roleUseCase.saveRole(any(Role.class))).thenReturn(Mono.just(role));
 
         RoleDTO dto = new RoleDTO();

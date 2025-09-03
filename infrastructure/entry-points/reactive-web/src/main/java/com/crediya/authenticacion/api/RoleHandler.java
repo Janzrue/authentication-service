@@ -15,7 +15,6 @@ import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Mono;
 
-import java.util.List;
 import java.util.stream.Collectors;
 
 @Component
@@ -37,10 +36,10 @@ public class RoleHandler {
                         String errs = violations.stream()
                                 .map(ConstraintViolation::getMessage)
                                 .collect(Collectors.joining(", "));
-                        throw new ValidationException(errs); // usamos  ValidationException
+                        throw new ValidationException(errs);
                     }
                     return Role.builder()
-//                            .id(dto.getUniqueId())
+                            .id(dto.getId())
                             .name(dto.getName())
                             .description(dto.getDescription())
                             .build();
@@ -49,16 +48,15 @@ public class RoleHandler {
                 .flatMap(savedRol -> ServerResponse.status(201)
                         .contentType(MediaType.APPLICATION_JSON)
                         .bodyValue(savedRol))
-                .onErrorResume(e -> {
-                    log.error("Error creating role: {}", e.getMessage());
-                    return ServerResponse.badRequest()
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .bodyValue("{\"error\":\"" + e.getMessage() + "\"}");
-                });
+                .doOnSuccess(r -> log.info("Role successfully created: {}", r))
+                .doOnError(e -> log.error("Error creating role: {}", e.getMessage()))
+                .onErrorResume(e -> ServerResponse.badRequest()
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .bodyValue("{\"error\":\"" + e.getMessage() + "\"}"));
     }
 
     public Mono<ServerResponse> listenFindRoleById(ServerRequest request) {
-        Long id = Long.valueOf(request.pathVariable("uniqueId"));
+        Long id = Long.valueOf(request.pathVariable("id"));
         log.info("Checking role with ID: {}", id);
         return roleUseCase.findRoleById(id)
                 .flatMap(role -> ServerResponse.ok()
@@ -71,16 +69,21 @@ public class RoleHandler {
         return request.bodyToMono(RoleDTO.class)
                 .map(this::validateDto)
                 .flatMap(roleUseCase::updateRole)
-                .flatMap(updatedRole -> ServerResponse.ok()
+                .flatMap(updatedRol -> ServerResponse.ok()
                         .contentType(MediaType.APPLICATION_JSON)
-                        .bodyValue(updatedRole))
+                        .bodyValue(updatedRol))
+                .doOnSuccess(r -> log.info("Updated role: {}", r))
+                .doOnError(e -> log.error("Error updating role: {}", e.getMessage()))
                 .onErrorResume(this::handleError);
     }
 
     public Mono<ServerResponse> listenDeleteRole(ServerRequest request) {
-        Long id = Long.valueOf(request.pathVariable("uniqueId"));
+        Long id = Long.valueOf(request.pathVariable("id"));
+        log.info("Deleting role with ID: {}", id);
         return roleUseCase.deleteRole(id)
                 .then(ServerResponse.noContent().build())
+                .doOnSuccess(r -> log.info("Role deleted with ID: {}", id))
+                .doOnError(e -> log.error("Error deleting role: {}", e.getMessage()))
                 .onErrorResume(this::handleError);
     }
 

@@ -32,30 +32,31 @@ public class UserHandler {
     public Mono<ServerResponse> listenSaveUser(ServerRequest request) {
         return request.bodyToMono(UserDTO.class)
                 .flatMap(dto -> {
-                    // 1️⃣ Validaciones básicas
+                    // Validaciones básicas del DTO
                     var violations = validator.validate(dto);
                     if (!violations.isEmpty()) {
                         String errs = violations.stream()
                                 .map(ConstraintViolation::getMessage)
                                 .collect(Collectors.joining(", "));
-                        return Mono.error(new ValidationException(errs));
+                        //return Mono.error(new ValidationException(errs));
+                        return Mono.error(new ValidationException("All fields are required."));
                     }
 
-                    // 2️⃣ Validación de email único
+                    // Validar si email ya existe
                     return userUseCase.existsByEmail(dto.getEmail())
                             .flatMap(emailExists -> {
                                 if (emailExists) {
-                                    return Mono.error(new ValidationException("The email is already registered."));
+                                    return Mono.error(new ValidationException("The email address is already registered."));
                                 }
                                 return Mono.just(dto);
                             });
                 })
                 .flatMap(dto -> {
-                    // 3️⃣ Validación de documento único
+                    // Validar si documento ya existe
                     return userUseCase.existsByIdentificationNumber(dto.getIdentificationNumber())
                             .flatMap(docExists -> {
                                 if (docExists) {
-                                    return Mono.error(new ValidationException("The identification number is already registered."));
+                                    return Mono.error(new ValidationException("The identity document is already registered."));
                                 }
                                 return Mono.just(dto);
                             });
@@ -65,10 +66,10 @@ public class UserHandler {
                 .flatMap(savedUser -> ServerResponse.ok()
                         .contentType(MediaType.APPLICATION_JSON)
                         .bodyValue(userApiMapper.toDTO(savedUser)))
+                .doOnSuccess(u -> log.info("User successfully created: {}", u))
+                .doOnError(e -> log.error("Error registering user: {}", e.getMessage()))
                 .onErrorResume(e -> {
                     if (e instanceof ValidationException || e instanceof DuplicateException) {
-                        log.warn("Error saving user", e);
-
                         return ServerResponse.badRequest()
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .bodyValue("{\"error\":\"" + e.getMessage() + "\"}");
@@ -86,19 +87,21 @@ public class UserHandler {
                 .map(userApiMapper::toDTO);
         return ServerResponse.ok()
                 .contentType(MediaType.APPLICATION_JSON)
-                .body(users, UserDTO.class);
+                .body(users, UserDTO.class)
+                .doOnSuccess(u -> log.info("All users were consulted."))
+                .doOnError(e -> log.error("Error querying users: {}", e.getMessage()));
     }
 
     // Obtener usuario por ID
-    public Mono<ServerResponse> listenFindUserByIdNumber(ServerRequest request) {
+    public Mono<ServerResponse> listenFindUserById(ServerRequest request) {
         Long id = Long.parseLong(request.pathVariable("id"));
+        log.info("Querying user with id: {}", id);
         return userUseCase.findUserByIdNumber(id)
                 .map(userApiMapper::toDTO)
                 .flatMap(user -> ServerResponse.ok()
                         .contentType(MediaType.APPLICATION_JSON)
                         .bodyValue(user))
-                .onErrorResume(NotFoundException.class,
-                        e -> ServerResponse.notFound().build());
+                .onErrorResume(NotFoundException.class, e -> ServerResponse.notFound().build());
     }
 
     // Editar usuario
@@ -110,17 +113,20 @@ public class UserHandler {
                 .flatMap(user -> ServerResponse.ok()
                         .contentType(MediaType.APPLICATION_JSON)
                         .bodyValue(user))
-                .onErrorResume(NotFoundException.class,
-                        e -> ServerResponse.notFound().build());
+                .doOnSuccess(u -> log.info("Edited user: {}", u))
+                .doOnError(e -> log.error("Error editing user: {}", e.getMessage()))
+                .onErrorResume(NotFoundException.class, e -> ServerResponse.notFound().build());
     }
 
     // Eliminar usuario
     public Mono<ServerResponse> listenDeleteUser(ServerRequest request) {
         Long id = Long.parseLong(request.pathVariable("id"));
+        log.info("Deleting user with id: {}", id);
         return userUseCase.deleteUser(id)
                 .then(ServerResponse.noContent().build())
-                .onErrorResume(NotFoundException.class,
-                        e -> ServerResponse.notFound().build());
+                .doOnSuccess(u -> log.info("User deleted with id: {}", id))
+                .doOnError(e -> log.error("Error deleting user: {}", e.getMessage()))
+                .onErrorResume(NotFoundException.class, e -> ServerResponse.notFound().build());
     }
 
     // Verificar si email existe
@@ -129,7 +135,8 @@ public class UserHandler {
         return userUseCase.existsByEmail(email)
                 .flatMap(exists -> ServerResponse.ok()
                         .contentType(MediaType.APPLICATION_JSON)
-                        .bodyValue("{\"exists\": " + exists + "}"));
+                        .bodyValue("{\"exists\": " + exists + "}"))
+                .doOnError(e -> log.error("Error verifying email: {}", e.getMessage()));
     }
 
     // Verificar si documento existe
@@ -138,6 +145,7 @@ public class UserHandler {
         return userUseCase.existsByIdentificationNumber(doc)
                 .flatMap(exists -> ServerResponse.ok()
                         .contentType(MediaType.APPLICATION_JSON)
-                        .bodyValue("{\"exists\": " + exists + "}"));
+                        .bodyValue("{\"exists\": " + exists + "}"))
+                .doOnError(e -> log.error("Error verifying document: {}", e.getMessage()));
     }
 }

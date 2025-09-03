@@ -21,6 +21,14 @@ public class UserReactiveRepositoryAdapter
     private final UserR2dbcMapper userMapper;
     private final TransactionalOperator transactionalOperator;
 
+    /**
+     * Adaptador que implementa UserRepository del dominio.
+     *
+     * Explicación:
+     * - Conecta la capa de dominio (User) con la base de datos (UserEntity).
+     * - Usa Spring Data R2DBC para consultas reactivas.
+     * - Incluye manejo transaccional con TransactionalOperator para garantizar atomicidad.
+     */
 
     public UserReactiveRepositoryAdapter(UserReactiveRepository repository, UserR2dbcMapper userMapper, TransactionalOperator transactionalOperator) {
         super(repository, null, userMapper::toModel);
@@ -75,16 +83,19 @@ public class UserReactiveRepositoryAdapter
                 .as(transactionalOperator::transactional);
     }
 
+    // Verifica si ya existe un usuario con un correo electrónico dado.
     @Override
     public Mono<Boolean> existsByEmail(String email) {
         return userReactiveRepository.existsByEmail(email);
     }
 
+    // Verifica si ya existe un usuario con un número de identificación dado.
     @Override
     public Mono<Boolean> existsByIdentificationNumber(String identificationNumber) {
         return userReactiveRepository.existsByIdentificationNumber(identificationNumber);
     }
 
+    // Verifica si ya existe un rol con un ID dado.
     @Override
     public Mono<Boolean> existsRoleById(Long idRole) {
         return userReactiveRepository.existsRoleById(idRole);

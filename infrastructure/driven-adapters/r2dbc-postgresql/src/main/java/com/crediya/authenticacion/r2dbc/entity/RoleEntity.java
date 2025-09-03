@@ -8,6 +8,12 @@ import lombok.Setter;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.relational.core.mapping.Table;
 
+/**
+ * Mapper de MapStruct para convertir entre:
+ * - Entidad persistente (RoleEntity)
+ * - Modelo de dominio (Rol)
+ */
+
 @Table(name = "roles")
 @AllArgsConstructor
 @NoArgsConstructor

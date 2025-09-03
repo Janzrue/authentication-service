@@ -10,6 +10,8 @@ dependencies {
     runtimeOnly('org.springframework.boot:spring-boot-devtools')
     testImplementation 'com.tngtech.archunit:archunit:1.4.1'
     testImplementation 'com.fasterxml.jackson.core:jackson-databind'
+    implementation 'org.slf4j:slf4j-api:2.0.13'
+    implementation("ch.qos.logback:logback-classic:1.5.18")
 }
 
 tasks.register('explodedJar', Copy) {

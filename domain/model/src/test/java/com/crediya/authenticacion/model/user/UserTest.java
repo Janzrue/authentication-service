@@ -8,12 +8,18 @@ import java.time.LocalDate;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+/**
+ * Pruebas unitarias para la entidad User.
+ *
+ * - Aseguran que el builder, setters y constructores funcionan como se espera.
+ */
+
 public class UserTest {
     @Test
     void shouldCreateUserUsingBuilder() {
 
         User user = User.builder()
-                .idNumber(12345L)
+                .id(12345L)
                 .name("Juan")
                 .lastName("Pérez")
                 .birthDate(LocalDate.parse("2000-11-10"))
@@ -25,7 +31,8 @@ public class UserTest {
                 .idRole(BigDecimal.valueOf(1))
                 .build();
 
-        assertEquals(12345L, user.getIdNumber());
+        // Creamos un usuario usando el builder y validamos los valores
+        assertEquals(12345L, user.getId());
         assertEquals("Juan", user.getName());
         assertEquals("Pérez", user.getLastName());
         assertEquals(LocalDate.parse("2000-11-10"), user.getBirthDate());
@@ -40,11 +47,11 @@ public class UserTest {
     @Test
     void shouldModifyUserUsingSetters() {
         User user = new User();
-        user.setIdNumber(123L);
+        user.setId(123L);
         user.setName("Carlos");
         user.setLastName("Lopez");
 
-        assertEquals(123L, user.getIdNumber());
+        assertEquals(123L, user.getId());
         assertEquals("Carlos", user.getName());
         assertEquals("Lopez", user.getLastName());
     }
@@ -56,7 +63,7 @@ public class UserTest {
                 3500000, "11223344",
                 BigDecimal.valueOf(2));
 
-        assertEquals(456L, user.getIdNumber());
+        assertEquals(456L, user.getId());
         assertEquals("Ana", user.getName());
     }
 }

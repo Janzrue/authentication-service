@@ -26,21 +26,21 @@ class       RoleReactiveRepositoryAdapterTest {
     @InjectMocks
     private RoleReactiveRepositoryAdapter adapter; // Adapter a probar
 
-    private Role rol;
+    private Role role;
     private RoleEntity entity;
 
     @BeforeEach
     void setUp() {
         // Creamos un rol de ejemplo
-        rol = Role.builder()
-                .uniqueId(1)
+        role = Role.builder()
+                .id(1L)
                 .name("ADMIN")
                 .description("Administrador del sistema")
                 .build();
 
         // Creamos la entidad correspondiente
         entity = RoleEntity.builder()
-                .idRole(1)
+                .id(1L)
                 .name("ADMIN")
                 .description("Administrador del sistema")
                 .build();
@@ -49,25 +49,25 @@ class       RoleReactiveRepositoryAdapterTest {
     @Test
     void findById_shouldReturnRol() {
         // Configuramos comportamiento de los mocks
-        when(repository.findById(1)).thenReturn(Mono.just(entity));
-        when(mapper.toModel(entity)).thenReturn(rol);
+        when(repository.findById(1L)).thenReturn(Mono.just(entity));
+        when(mapper.toModel(entity)).thenReturn(role);
 
         // Ejecutamos método
-        StepVerifier.create(adapter.findById(1))
-                .expectNext(rol)
+        StepVerifier.create(adapter.findById(1L))
+                .expectNext(role)
                 .verifyComplete();
 
-        verify(repository, times(1)).findById(1);
+        verify(repository, times(1)).findById(1L);
     }
 
     @Test
     void save_shouldMapAndCallRepo() {
-        when(mapper.toEntity(rol)).thenReturn(entity);
+        when(mapper.toEntity(role)).thenReturn(entity);
         when(repository.save(entity)).thenReturn(Mono.just(entity));
-        when(mapper.toModel(entity)).thenReturn(rol);
+        when(mapper.toModel(entity)).thenReturn(role);
 
-        StepVerifier.create(adapter.save(rol))
-                .expectNext(rol)
+        StepVerifier.create(adapter.save(role))
+                .expectNext(role)
                 .verifyComplete();
 
         verify(repository, times(1)).save(entity);
@@ -76,18 +76,18 @@ class       RoleReactiveRepositoryAdapterTest {
     @Test
     void update_shouldModifyExistingRol() {
         Role updatedRole = Role.builder()
-                .uniqueId(1)
+                .id(1L)
                 .name("SUPER_ADMIN")
                 .description("Administrador principal")
                 .build();
 
         RoleEntity updatedEntity = RoleEntity.builder()
-                .idRole(1)
+                .id(1L)
                 .name("SUPER_ADMIN")
                 .description("Administrador principal")
                 .build();
 
-        when(repository.findById(1)).thenReturn(Mono.just(entity)); // encuentra rol existente
+        when(repository.findById(1L)).thenReturn(Mono.just(entity)); // encuentra rol existente
         when(mapper.toEntity(updatedRole)).thenReturn(updatedEntity);
         when(repository.save(updatedEntity)).thenReturn(Mono.just(updatedEntity));
         when(mapper.toModel(updatedEntity)).thenReturn(updatedRole);
@@ -96,17 +96,17 @@ class       RoleReactiveRepositoryAdapterTest {
                 .expectNext(updatedRole)
                 .verifyComplete();
 
-        verify(repository, times(1)).findById(1);
+        verify(repository, times(1)).findById(1L);
         verify(repository, times(1)).save(updatedEntity);
     }
 
     @Test
     void delete_shouldCallRepo() {
-        when(repository.deleteById(1)).thenReturn(Mono.empty());
+        when(repository.deleteById(1L)).thenReturn(Mono.empty());
 
         StepVerifier.create(adapter.deleteRole(1L))
                 .verifyComplete();
 
-        verify(repository, times(1)).deleteById(1);
+        verify(repository, times(1)).deleteById(1L);
     }
 }

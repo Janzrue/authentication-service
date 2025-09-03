@@ -21,17 +21,26 @@ import static org.springframework.web.reactive.function.server.RequestPredicates
 import static org.springframework.web.reactive.function.server.RequestPredicates.DELETE;
 import static org.springframework.web.reactive.function.server.RouterFunctions.route;
 
+/**
+ * Router para exponer endpoints de ROLES.
+ */
+
 @Configuration
 public class RoleRouterRest {
+
+    // Constantes
+    private static final String BASE_PATH = "/api/v1/roles";
+    private static final String PATH_ID = "/{id}";
+
     @Bean
     @RouterOperations({
 
             @RouterOperation(
-                    path = "/api/v1/roles/{uniqueId}",
+                    path = BASE_PATH + PATH_ID,
                     produces = {MediaType.APPLICATION_JSON_VALUE},
                     method = RequestMethod.GET,
                     beanClass = RoleHandler.class,
-                    beanMethod = "listenFindRoleById", // 🔄 cambiado
+                    beanMethod = "listenFindRoleById",
                     operation = @Operation(
                             operationId = "listenFindRoleById",
                             summary = "Get a role by ID",
@@ -47,11 +56,11 @@ public class RoleRouterRest {
             ),
 
             @RouterOperation(
-                    path = "/api/v1/roles",
+                    path = BASE_PATH,
                     produces = {MediaType.APPLICATION_JSON_VALUE},
                     method = RequestMethod.POST,
                     beanClass = RoleHandler.class,
-                    beanMethod = "listenSaveRole", // 🔄 cambiado
+                    beanMethod = "listenSaveRole",
                     operation = @Operation(
                             operationId = "listenSaveRole",
                             summary = "Save a new role",
@@ -66,18 +75,14 @@ public class RoleRouterRest {
             ),
 
             @RouterOperation(
-                    path = "/api/v1/roles",
+                    path = BASE_PATH,
                     produces = {MediaType.APPLICATION_JSON_VALUE},
                     method = RequestMethod.PUT,
                     beanClass = RoleHandler.class,
-                    beanMethod = "listenUpdateRole", // 🔄 cambiado
+                    beanMethod = "listenUpdateRole",
                     operation = @Operation(
                             operationId = "listenUpdateRole",
                             summary = "Edit an existing role",
-                            requestBody = @RequestBody(
-                                    required = true,
-                                    content = @Content(schema = @Schema(implementation = RoleDTO.class))
-                            ),
                             responses = {
                                     @ApiResponse(responseCode = "200", description = "Role updated"),
                                     @ApiResponse(responseCode = "404", description = "Role not updated")
@@ -86,7 +91,7 @@ public class RoleRouterRest {
             ),
 
             @RouterOperation(
-                    path = "/api/v1/roles/{uniqueId}",
+                    path = BASE_PATH + PATH_ID,
                     produces = {MediaType.APPLICATION_JSON_VALUE},
                     method = RequestMethod.DELETE,
                     beanClass = RoleHandler.class,
@@ -101,10 +106,10 @@ public class RoleRouterRest {
                     )
             )
     })
-    public RouterFunction<ServerResponse> rolRoutes(RoleHandler rolHandler) {
-        return route(POST("/api/v1/roles"), rolHandler::listenSaveRole)
-                .andRoute(GET("/api/v1/roles/{uniqueId}"), rolHandler::listenFindRoleById)
-                .andRoute(PUT("/api/v1/roles"), rolHandler::listenUpdateRole)
-                .andRoute(DELETE("/api/v1/roles/{uniqueId}"), rolHandler::listenDeleteRole);
+    public RouterFunction<ServerResponse> roleRoutes(RoleHandler rolHandler) {
+        return route(POST(BASE_PATH), rolHandler::listenSaveRole)
+                .andRoute(GET(BASE_PATH + PATH_ID), rolHandler::listenFindRoleById)
+                .andRoute(PUT(BASE_PATH), rolHandler::listenUpdateRole)
+                .andRoute(DELETE(BASE_PATH + PATH_ID), rolHandler::listenDeleteRole);
     }
 }
