@@ -22,6 +22,9 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class UserReactiveRepositoryAdapterTest {
 
+    private static final Long USER_ID = 1L;
+    private static final BigDecimal ROLE_ID = BigDecimal.ONE;
+
     @Mock
     private UserReactiveRepository repo;
 
@@ -40,40 +43,71 @@ class UserReactiveRepositoryAdapterTest {
     @BeforeEach
     void setUp() {
         // Creamos un usuario y su entidad equivalente
-        user = new User(1L, "Ana", "Martinez", LocalDate.parse("1990-01-01"), "Calle 1", "3000000", "ana@test.com",
-                2000, "123", BigDecimal.valueOf(1));
+        user = buildUser(USER_ID, "Ana", "Martinez");
+        entity = buildEntity(USER_ID, "Ana", "Martinez");
+    }
 
-        entity = new UserEntity(1L, "Ana", "Martinez", LocalDate.parse("1990-01-01"), "Calle 1", "3000000",
-                "ana@test.com", 2000, "123", 1L);
+    private User buildUser(Long id, String firstName, String lastName) {
+        return User.builder()
+                .id(id)
+                .name(firstName)
+                .lastName(lastName)
+                .birthDate(LocalDate.parse("1990-01-01"))
+                .address("Calle 1")
+                .phone("3000000")
+                .email("juan.perez@correo.com")
+                .baseSalary(2000)
+                .identificationNumber("123")
+                .idRole(ROLE_ID)
+                .password("hashedPassword")
+                .build();
+    }
+
+    private UserEntity buildEntity(Long id, String firstName, String lastName) {
+        return UserEntity.builder()
+                .id(id)
+                .name(firstName)
+                .lastName(lastName)
+                .birthDate(LocalDate.parse("1990-01-01"))
+                .address("Calle 1")
+                .phone("3000000")
+                .email("juan.perez@correo.com")
+                .baseSalary(2000)
+                .identificationNumber("123")
+                .roleId(ROLE_ID.longValue())
+                .password("hashedPassword")
+                .build();
+    }
+
+    private void mockTransactional(Mono<?> mono){
+        when(tx.transactional(any(Mono.class))).thenAnswer(i -> i.getArgument(0));
     }
 
     @Test
-    void saveUser_shouldMapAndCallRepo() {
+     void saveUser_shouldReturnSavedUser() {
         // Configuramos comportamiento de mocks
-        when(mapper.toEntity(user)).thenReturn(entity); // Mapper transforma User -> UserEntity
-        when(repo.save(entity)).thenReturn(Mono.just(entity)); // Repositorio guarda y retorna entidad
-        when(mapper.toModel(entity)).thenReturn(user); // Mapper transforma de vuelta a User
-        when(tx.transactional(any(Mono.class))).thenAnswer(i -> i.getArgument(0)); // Simula transacción
+        mockTransactional(Mono.just(user));
+        when(mapper.toEntity(user)).thenReturn(entity);
+        when(repo.save(entity)).thenReturn(Mono.just(entity));
+        when(mapper.toModel(entity)).thenReturn(user);
 
-        // Ejecutamos el método a testear
         StepVerifier.create(adapter.saveUser(user))
-                .expectNext(user) // Esperamos que devuelva el mismo usuario
+                .expectNext(user)
                 .verifyComplete();
 
-        // Verificamos que el repositorio se llamó correctamente
-        verify(repo, times(1)).save(entity);
+        verify(repo).save(entity);
     }
 
     @Test
     void getUserByIdNumber_shouldReturnUser() {
-        when(repo.findById(1L)).thenReturn(Mono.just(entity)); // Repo retorna entidad
-        when(mapper.toModel(entity)).thenReturn(user); // Mapper transforma a User
+        when(repo.findById(USER_ID)).thenReturn(Mono.just(entity));
+        when(mapper.toModel(entity)).thenReturn(user);
 
-        StepVerifier.create(adapter.findUserById(1L))
+        StepVerifier.create(adapter.findUserById(USER_ID))
                 .expectNext(user)
                 .verifyComplete();
 
-        verify(repo, times(1)).findById(1L);
+        verify(repo).findById(USER_ID);
     }
 
     @Test
@@ -90,17 +124,14 @@ class UserReactiveRepositoryAdapterTest {
 
     @Test
     void editUser_shouldUpdateExistingUser() {
-        User updatedUser = new User(1L, "Ana", "Lopez", LocalDate.parse("1990-01-01"), "Calle 1", "3000000",
-                "ana@test.com", 2000, "123", BigDecimal.valueOf(1));
-        UserEntity updatedEntity = new UserEntity(1L, "Ana", "Lopez", LocalDate.parse("1990-01-01"), "Calle 1", "3000000",
-                "ana@test.com", 2000, "123", 1L);
+        User updatedUser = user.toBuilder().lastName("Lopez").build(); ;
+        UserEntity updatedEntity = buildEntity(USER_ID, "Ana", "Lopez") ;
 
-        when(repo.findById(1L)).thenReturn(Mono.just(entity)); // Repo encuentra usuario
+        when(repo.findById(USER_ID)).thenReturn(Mono.just(entity)); // Repo encuentra usuario
         when(mapper.toEntity(updatedUser)).thenReturn(updatedEntity); // Mapper transforma
         when(repo.save(updatedEntity)).thenReturn(Mono.just(updatedEntity)); // Repo guarda cambios
         when(mapper.toModel(updatedEntity)).thenReturn(updatedUser);
-        when(tx.transactional(any(Mono.class))).thenAnswer(i -> i.getArgument(0)); // Transacción simulada
-
+        mockTransactional(Mono.just(updatedUser));
         StepVerifier.create(adapter.editUser(updatedUser))
                 .expectNext(updatedUser)
                 .verifyComplete();
@@ -111,13 +142,13 @@ class UserReactiveRepositoryAdapterTest {
 
     @Test
     void deleteUser_shouldCallRepo() {
-        when(repo.deleteById(1L)).thenReturn(Mono.empty()); // Repo elimina usuario
-        when(tx.transactional(any(Mono.class))).thenAnswer(i -> i.getArgument(0)); // Simula transacción
+        when(repo.deleteById(USER_ID)).thenReturn(Mono.empty()); // Repo elimina usuario
+        mockTransactional(Mono.empty());
 
-        StepVerifier.create(adapter.deleteUser(1L))
+        StepVerifier.create(adapter.deleteUser(USER_ID))
                 .verifyComplete();
 
-        verify(repo, times(1)).deleteById(1L);
+        verify(repo).deleteById(USER_ID);
     }
 
 

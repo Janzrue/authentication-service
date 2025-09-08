@@ -26,13 +26,18 @@ import java.util.stream.Collectors;
 public class UserHandler {
 
     private static final Logger log = LoggerFactory.getLogger(UserHandler.class);
-    private final UserUseCase userUseCase;
-    private final UserApiMapper userApiMapper;
-    private final Validator validator;
-    private final PasswordEncoderPort passwordEncoder;
+
+    private final UserUseCase userUseCase; // Caso de uso de usuario
+    private final UserApiMapper userApiMapper; // Mapper DTO ↔ Dominio
+    private final Validator validator; // Validador de Bean Validation
+    private final PasswordEncoderPort passwordEncoder; // Servicio de encriptación de contraseñas
 
     public Mono<ServerResponse> listenSaveUser(ServerRequest request) {
+
+        // Leer el cuerpo de la solicitud como UserDTO
         return request.bodyToMono(UserDTO.class)
+
+                // Validar el DTO recibido
                 .flatMap(dto -> {
                     // Validaciones básicas del DTO
                     var violations = validator.validate(dto);
@@ -43,39 +48,44 @@ public class UserHandler {
                         //return Mono.error(new ValidationException(errs));
                         return Mono.error(new ValidationException("All fields are required."));
                     }
+                    return Mono.just(dto);
+                })
 
-                    // Validar si email ya existe
-                    return userUseCase.existsByEmail(dto.getEmail())
-                            .flatMap(emailExists -> {
-                                if (emailExists) {
-                                    return Mono.error(new ValidationException("The email address is already registered."));
-                                }
-                                return Mono.just(dto);
-                            });
-                })
-                .flatMap(dto -> {
-                    // Validar si documento ya existe
-                    return userUseCase.existsByIdentificationNumber(dto.getIdentificationNumber())
-                            .flatMap(docExists -> {
-                                if (docExists) {
-                                    return Mono.error(new ValidationException("The identity document is already registered."));
-                                }
-                                return Mono.just(dto);
-                            });
-                })
+                // Verificar que el email no exista
+                .filterWhen(dto -> userUseCase.existsByEmail(dto.getEmail())
+                        .map(exists -> !exists)) // pasa solo si NO existe
+                .switchIfEmpty(Mono.error(new ValidationException("The email is already registered.")))
+
+                // Verificar que el documento no exista
+                .filterWhen(dto -> userUseCase.existsByIdentificationNumber(dto.getIdentificationNumber())
+                        .map(exists -> !exists)) // pasa solo si NO existe
+                .switchIfEmpty(Mono.error(new ValidationException("The document has already been registered.")))
+
+                // Encriptar la contraseña
                 .flatMap(dto -> passwordEncoder.encode(dto.getPassword())
                         .map(hash -> {
                             dto.setPassword(hash); // reemplaza por hash
                             return dto;
                         })
                 )
+                // Mapear DTO a modelo de dominio
                 .map(userApiMapper::toDomain)
+
+                // Guardar el usuario
                 .flatMap(userUseCase::saveUser)
-                .flatMap(savedUser -> ServerResponse.ok()
+
+                // Mapear modelo de dominio a DTO
+                .map(userApiMapper::toDTO)
+
+                // Responder con el usuario guardado
+                .flatMap(savedDto -> ServerResponse.ok()
                         .contentType(MediaType.APPLICATION_JSON)
-                        .bodyValue(userApiMapper.toDTO(savedUser)))
+                        .bodyValue(savedDto))
+
                 .doOnSuccess(u -> log.info("User successfully created: {}", u))
                 .doOnError(e -> log.error("Error registering user: {}", e.getMessage()))
+
+                // Manejo de errores específicos
                 .onErrorResume(e -> {
                     if (e instanceof ValidationException || e instanceof DuplicateException) {
                         return ServerResponse.badRequest()
@@ -91,6 +101,7 @@ public class UserHandler {
 
     // Obtener todos los usuarios
     public Mono<ServerResponse> listenFindAllUsers(ServerRequest request) {
+        // Flux de usuarios mapeado a DTO
         Flux<UserDTO> users = userUseCase.findAllUsers()
                 .map(userApiMapper::toDTO);
         return ServerResponse.ok()

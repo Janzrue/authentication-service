@@ -22,9 +22,12 @@ public class SecurityConfig {
                 .formLogin(ServerHttpSecurity.FormLoginSpec::disable)
                 .authorizeExchange(ex -> ex
                         .pathMatchers(AuthConstants.LOGIN_PATH, AuthConstants.REFRESH_PATH,
-                                "/v3/api-docs/**", "/swagger-ui/**").permitAll()
+                                "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html", "/webjars/**").permitAll()
 
-                        .pathMatchers(HttpMethod.POST, "/api/v1/users").permitAll()
+                        //.pathMatchers(HttpMethod.POST, "/api/v1/users").permitAll()
+
+                        .pathMatchers(HttpMethod.GET, "/api/v1/users/**")
+                        .hasAnyRole(AuthConstants.ROLE_CLIENTE)
 
                         .pathMatchers("/api/v1/users/**")
                         .hasAnyRole(AuthConstants.ROLE_ADMIN, AuthConstants.ROLE_ASESOR)
