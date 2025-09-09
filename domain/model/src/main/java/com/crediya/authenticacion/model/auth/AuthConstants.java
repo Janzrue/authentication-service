@@ -13,9 +13,9 @@ public final class AuthConstants {
     public static final String CLAIM_NAME = "name";
 
     // Roles
-    public static final String ROLE_ADMIN = "Admin";
-    public static final String ROLE_ASESOR = "Asesor";
-    public static final String ROLE_CLIENTE = "Cliente";
+    public static final String ROLE_ADMIN = "ADMIN";
+    public static final String ROLE_ASESOR = "ASESOR";
+    public static final String ROLE_CLIENTE = "CLIENTE";
 
     // Tiempos (ms)
     public static final long ACCESS_TOKEN_TTL_MS  = 5 * 60_000L;        // 5 minutos

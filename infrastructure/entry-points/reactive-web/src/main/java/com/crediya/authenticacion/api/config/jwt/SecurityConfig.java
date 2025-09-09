@@ -27,7 +27,7 @@ public class SecurityConfig {
                         //.pathMatchers(HttpMethod.POST, "/api/v1/users").permitAll()
 
                         .pathMatchers(HttpMethod.GET, "/api/v1/users/**")
-                        .hasAnyRole(AuthConstants.ROLE_CLIENTE)
+                        .hasAnyRole(AuthConstants.ROLE_ADMIN, AuthConstants.ROLE_ASESOR, AuthConstants.ROLE_CLIENTE)
 
                         .pathMatchers("/api/v1/users/**")
                         .hasAnyRole(AuthConstants.ROLE_ADMIN, AuthConstants.ROLE_ASESOR)

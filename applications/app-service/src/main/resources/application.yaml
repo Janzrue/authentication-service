@@ -42,7 +42,7 @@ springdoc:
 
 security:
   jwt:
-    secret: "${JWT_SECRET:change_this_very_long_secret_key_32_chars_min}"
+    secret: "${JWT_SECRET:a8eb76bd1e42bc965a6f55ab2b984a67ea3147d59f690b4ef27bcfa13aa6481e22dd8e78}"
     access-token-validity-ms: 900000
     refresh-token-validity-ms: 86400000
 logging:
