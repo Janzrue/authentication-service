@@ -1,0 +1,33 @@
+server:
+  port: 8081
+
+spring:
+  application:
+    name: authentication
+
+  # R2DBC para PostgreSQL
+  r2dbc:
+    url: r2dbc:postgresql://postgres:5432/${POSTGRES_DB:authentication}
+    username: ${POSTGRES_USER:postgres}
+    password: ${POSTGRES_PASSWORD:admin}
+
+# Adapter Bancolombia (adaptado para PostgreSQL)
+adapters:
+  r2dbc:
+    host: postgres
+    port: 5432
+    database: ${POSTGRES_DB:authentication}
+    username: ${POSTGRES_USER:postgres}
+    password: ${POSTGRES_PASSWORD:admin}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+
+security:
+  jwt:
+    secret: ${JWT_SECRET:your-super-secret-jwt-key-change-this-in-production}
+    access-token-validity-ms: 9000000000
+    refresh-token-validity-ms: 8640000000

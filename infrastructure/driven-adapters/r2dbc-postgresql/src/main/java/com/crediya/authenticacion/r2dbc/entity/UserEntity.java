@@ -1,6 +1,5 @@
 package com.crediya.authenticacion.r2dbc.entity;
 
-import jakarta.persistence.Column;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -8,6 +7,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.relational.core.mapping.Table;
+import org.springframework.data.relational.core.mapping.Column;
 
 import java.time.LocalDate;
 
@@ -28,18 +28,18 @@ public class UserEntity {
     @Id
     private Long id;
     private String name;
-    @Column(name = "last_name")
+    @Column("last_name")
     private String lastName;
-    @Column( name = "birth_date")
+    @Column("birth_date")
     private LocalDate birthDate;
     private String address;
     private String password;
     private String phone;
     private String email;
-    @Column(name = "base_salary")
+    @Column("base_salary")
     private Integer baseSalary;
-    @Column(name = "identification_number")
+    @Column("identification_number")
     private String identificationNumber;
-    @Column(name = "role_id")
+    @Column("role_id")
     private Long roleId;
 }
